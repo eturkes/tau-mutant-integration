@@ -15,3 +15,13 @@
 FROM rocker/rstudio:4.3.3
 
 LABEL org.opencontainers.image.authors="Emir Turkes emir.turkes@eturkes.com"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libglpk40 \
+    && Rscript -e "install.packages('conflicted')" \
+        -e "install.packages('Seurat')" \
+    && apt-get clean \
+    && rm -Rf /var/lib/apt/lists/ \
+        /tmp/downloaded_packages/ \
+        /tmp/*.rds

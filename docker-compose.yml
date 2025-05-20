@@ -16,13 +16,13 @@ version: "3"
 
 services:
   all:
-    image: eturkes/tau-mutant-integration:R4.3.3v1
+    image: eturkes/tau-mutant-integration:R4.3.3v2
     volumes:
       - ".:/home/rstudio/tau-mutant-integration:rw"
     command: Rscript -e "source('/home/rstudio/tau-mutant-integration/R/run_all.R')"
 
   rstudio:
-    image: eturkes/tau-mutant-integration:R4.3.3v1
+    image: eturkes/tau-mutant-integration:R4.3.3v2
     volumes:
       - ".:/home/rstudio/tau-mutant-integration:rw"
     ports:
