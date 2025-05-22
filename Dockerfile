@@ -19,8 +19,11 @@ LABEL org.opencontainers.image.authors="Emir Turkes emir.turkes@eturkes.com"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libglpk40 \
+        zlib1g-dev \
     && Rscript -e "install.packages('conflicted')" \
         -e "install.packages('Seurat')" \
+        -e "install.packages('BiocManager')" \
+        -e "BiocManager::install('glmGamPoi')" \
     && apt-get clean \
     && rm -Rf /var/lib/apt/lists/ \
         /tmp/downloaded_packages/ \

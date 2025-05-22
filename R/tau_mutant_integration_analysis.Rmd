@@ -1,0 +1,184 @@
+---
+title: "Tau Mutant Integration Analysis"
+author:
+  - name: "Emir Turkes and Naoto Watamura, UK DRI at UCL"
+date: '`r strftime(Sys.time(), format = "%B %d, %Y")`'
+link-citations: true
+output:
+  html_document:
+    code_folding: show
+    number_sections: true
+    theme: lumen
+    highlight: haddock
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(
+    inputFile,
+    encoding = encoding,
+    output_file = file.path(
+      "..", "results", "tau_mutant_integration_analysis.html"
+    )
+  )})
+---
+
+<style type="text/css">
+body {font-size: 16px;}
+h1.title {font-size: 35px;}
+h1 {font-size: 24px;}
+h2 {font-size: 22px;}
+.toc-content {padding-left: 0px; padding-right: 0px;}
+div.tocify {width: 100%;}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em; padding-left: 25px; text-indent: 0;
+}
+div.main-container {max-width: none; width: 100%;}
+</style>
+
+```{r}
+# Copyright 2025 Emir Turkes, Naoto Watamura, UK DRI at UCL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Load packages.
+# --------------
+library(conflicted)
+packages <- c("Seurat", "ggplot2", "dplyr", "ggrepel")
+invisible(
+  suppressPackageStartupMessages(
+    lapply(packages, FUN = library, character.only = TRUE)
+  )
+)
+# --------------
+
+# Define functions.
+# -----------------
+source("utils.R")
+# -----------------
+
+# Add paths.
+# ----------
+data_dir <- file.path("..", "data")
+cache_dir <- file.path("..", "cache")
+if (!dir.exists(cache_dir)) {
+  dir.create(cache_dir, recursive = TRUE)
+}
+# ----------
+
+# Global settings.
+# ----------------
+knitr::opts_chunk$set(fig.width = 7, fig.height = 5, dpi = 96)
+# ----------------
+```
+
+# Load Data
+
+```{r}
+snrnaseq <- readRDS(file.path(data_dir, "snrnaseq.rds"))
+geomx <- readRDS(file.path(data_dir, "geomx.rds"))
+
+geomx$status <- factor(
+  ifelse(
+    geomx$genotype %in% c("MAPTKI", "P301S"), yes = "Homeostatic",
+    no = ifelse(
+      geomx$genotype %in% c("NLGF_MAPTKI", "NLGF_P301S"), yes = "Activated",
+      no = "Other"
+    )
+  )
+)
+```
+
+# Prep Data
+
+```{r}
+snrnaseq@active.ident <- snrnaseq$genotype
+snrnaseq <- subset(
+  snrnaseq, idents = c("MAPTKI", "P301S", "NLGF_MAPTKI", "NLGF_P301S")
+)
+snrnaseq$genotype <- factor(
+  snrnaseq$genotype,
+  levels = c("MAPTKI", "P301S", "NLGF_MAPTKI", "NLGF_P301S")
+)
+
+snrnaseq_geneids <- suppressWarnings(GetAssayData(snrnaseq, assay = "RNA"))
+gene_anno <- data.frame(
+  external_gene_name = unlist(snrnaseq@misc$geneids),
+  ensembl_gene_id = rownames(
+    suppressWarnings(GetAssayData(snrnaseq, assay = "RNA"))
+  )
+)
+gene_anno <- gene_anno[
+  gene_anno$ensembl_gene_id %in% rownames(snrnaseq_geneids),
+]
+rownames(snrnaseq_geneids) <- gene_anno$external_gene_name
+rm(gene_anno)
+snrnaseq_geneids <- CreateSeuratObject(
+  counts = snrnaseq_geneids, assay = "RNA", meta.data = snrnaseq@meta.data
+)
+
+snrnaseq_geneids <- SCTransform(snrnaseq_geneids, verbose = FALSE)
+snrnaseq_geneids <- RunPCA(snrnaseq_geneids, npcs = 30, verbose = FALSE)
+ElbowPlot(snrnaseq_geneids, ndims = 30)
+
+snrnaseq_geneids <- RunUMAP(snrnaseq_geneids, dims = 1:18, verbose = FALSE)
+add_df <- data.frame(Embeddings(snrnaseq_geneids, reduction = "umap"))
+snrnaseq_geneids$umap1 <- add_df[ , 1]
+snrnaseq_geneids$umap2 <- add_df[ , 2]
+red_dim_plot(
+  snrnaseq_geneids, x = "umap1", y = "umap2", color = "genotype", type = "cat"
+)
+
+pca <- geomx[["pca"]]
+pca@feature.loadings[ , 2] <- pca@feature.loadings[ , 1]
+pca@cell.embeddings[ , 2] <- pca@cell.embeddings[ , 1]
+geomx[["pca"]] <- pca
+
+add_df <- data.frame(Embeddings(geomx, reduction = "pca"))
+geomx$pca1 <- add_df[ , 1]
+geomx$pca5 <- add_df[ , 5]
+red_dim_plot(geomx, x = "pca1", y = "pca5", color = "genotype", type = "cat")
+```
+
+# Map Data
+
+```{r}
+anchors <- FindTransferAnchors(
+  geomx, snrnaseq_geneids,
+  normalization.method = "SCT", recompute.residuals = FALSE,
+  reference.reduction = "pca", project.query = TRUE,
+  dims = 1:2, verbose = FALSE
+)
+predictions <- MapQuery(
+  anchors, snrnaseq_geneids, geomx,
+  refdata = "status", reference.dims = 1:2, query.dims = 1:18,
+  verbose = FALSE
+)
+snrnaseq_geneids$status <- factor(
+  predictions$predicted.id
+)
+
+red_dim_plot(
+  snrnaseq_geneids, x = "umap1", y = "umap2", color = "status", type = "cat"
+)
+```
+
+# References
+
+This is the concluding section of the document, where we output the `sessionInfo`, and create a bibliography for works cited.
+
+```{r}
+sessionInfo()
+```
