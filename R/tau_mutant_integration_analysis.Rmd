@@ -230,6 +230,120 @@ red_dim_plot(
 )
 ```
 
+# Layer 2 Prep
+
+```{r}
+rds <- file.path(cache_dir, "snrnaseq_geneids_l2.rds")
+if (file.exists(rds)) {
+  snrnaseq_geneids_l2 <- readRDS(rds)
+} else {
+  snrnaseq_geneids_l2 <- snrnaseq_geneids
+  snrnaseq_geneids_l2@active.ident <- snrnaseq_geneids_l2$genotype
+  snrnaseq_geneids_l2 <- subset(
+    snrnaseq_geneids_l2, idents = c("NLGF_MAPTKI", "NLGF_P301S")
+  )
+  snrnaseq_geneids_l2$genotype <- factor(snrnaseq_geneids_l2$genotype)
+
+  snrnaseq_geneids_l2 <- SCTransform(snrnaseq_geneids_l2, verbose = FALSE)
+  snrnaseq_geneids_l2 <- RunPCA(snrnaseq_geneids_l2, npcs = 30, verbose = FALSE)
+  snrnaseq_geneids_l2 <- RunUMAP(snrnaseq_geneids_l2, dims = 1:6, verbose = FALSE)
+
+  add_df <- data.frame(Embeddings(snrnaseq_geneids_l2, reduction = "umap"))
+  snrnaseq_geneids_l2$umap1 <- add_df[ , 1]
+  snrnaseq_geneids_l2$umap2 <- add_df[ , 2]
+
+  add_df <- data.frame(Embeddings(snrnaseq_geneids_l2, reduction = "pca"))
+  snrnaseq_geneids_l2$pca1 <- add_df[ , 1]
+  snrnaseq_geneids_l2$pca2 <- add_df[ , 2]
+
+  saveRDS(snrnaseq_geneids_l2, file = rds)
+}
+
+ElbowPlot(snrnaseq_geneids_l2, ndims = 30)
+red_dim_plot(
+  snrnaseq_geneids_l2, x = "umap1", y = "umap2",
+  color = "genotype_status", type = "cat"
+)
+red_dim_plot(
+  snrnaseq_geneids_l2, x = "pca1", y = "pca2",
+  color = "genotype_status", type = "cat"
+)
+
+pca <- snrnaseq_geneids_l2[["pca"]]
+pca@feature.loadings[ , 2] <- pca@feature.loadings[ , 1]
+pca@cell.embeddings[ , 2] <- pca@cell.embeddings[ , 1]
+snrnaseq_geneids_l2[["pca"]] <- pca
+
+rds <- file.path(cache_dir, "geomx_l2.rds")
+if (file.exists(rds)) {
+  geomx_l2 <- readRDS(rds)
+} else {
+  geomx_l2 <- geomx
+  geomx_l2@active.ident <- geomx_l2$genotype
+  geomx_l2 <- subset(
+    geomx_l2, idents = c("NLGF_MAPTKI", "NLGF_P301S")
+  )
+  geomx_l2$genotype <- factor(geomx_l2$genotype)
+
+  geomx_l2 <- SCTransform(geomx_l2, verbose = FALSE)
+  geomx_l2 <- RunPCA(geomx_l2, npcs = 30, verbose = FALSE)
+  geomx_l2 <- RunUMAP(geomx_l2, dims = 2:4, verbose = FALSE)
+
+  add_df <- data.frame(Embeddings(geomx_l2, reduction = "umap"))
+  geomx_l2$umap1 <- add_df[ , 1]
+  geomx_l2$umap2 <- add_df[ , 2]
+
+  add_df <- data.frame(Embeddings(geomx_l2, reduction = "pca"))
+  geomx_l2$pca2 <- add_df[ , 2]
+  geomx_l2$pca3 <- add_df[ , 3]
+
+  saveRDS(geomx_l2, file = rds)
+}
+```
+
+# Map Data
+
+```{r}
+anchors <- FindTransferAnchors(
+  geomx_l2, snrnaseq_geneids_l2,
+  normalization.method = "SCT", recompute.residuals = FALSE,
+  reference.reduction = "pca", project.query = TRUE,
+  dims = 2:3, verbose = FALSE
+)
+predictions <- MapQuery(
+  anchors, snrnaseq_geneids_l2, geomx_l2,
+  refdata = "status", reference.dims = 2:3, query.dims = 1:2,
+  verbose = FALSE
+)
+snrnaseq_geneids_l2$status <- factor(
+  predictions$predicted.id
+)
+
+red_dim_plot(
+  snrnaseq_geneids_l2, x = "umap1", y = "umap2", color = "status", type = "cat"
+)
+```
+
+# Layer 2 Intersect Annotations
+
+```{r}
+snrnaseq_geneids_l2$genotype_status <- factor(
+  paste(
+    snrnaseq_geneids_l2$genotype, snrnaseq_geneids_l2$status, sep = "_"
+  ),
+  levels = c(
+    "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Homeostatic",
+    "NLGF_P301S_Activated", "NLGF_P301S_Homeostatic"
+  )
+)
+table(snrnaseq_geneids_l2$genotype_status)
+
+red_dim_plot(
+  snrnaseq_geneids_l2, x = "umap1", y = "umap2",
+  color = "genotype_status", type = "cat"
+)
+```
+
 # References
 
 This is the concluding section of the document, where we output the `sessionInfo`, and create a bibliography for works cited.
