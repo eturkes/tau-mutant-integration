@@ -184,6 +184,52 @@ red_dim_plot(
 )
 ```
 
+# Intersect Annotations
+
+```{r}
+snrnaseq_geneids$genotype_status <- factor(
+  paste(
+    snrnaseq_geneids$genotype, snrnaseq_geneids$status, sep = "_"
+  ),
+  levels = c(
+    "MAPTKI_Activated", "MAPTKI_Homeostatic",
+    "P301S_Activated", "P301S_Homeostatic",
+    "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Homeostatic",
+    "NLGF_P301S_Activated", "NLGF_P301S_Homeostatic"
+  )
+)
+table(snrnaseq_geneids$genotype_status)
+
+red_dim_plot(
+  snrnaseq_geneids, x = "umap1", y = "umap2", color = "genotype_status"
+)
+
+snrnaseq_geneids$genotype_status_cleaned <- as.character(
+  snrnaseq_geneids$genotype_status
+)
+
+snrnaseq_geneids$genotype_status_cleaned[
+  grepl("^MAPTKI", snrnaseq_geneids$genotype_status_cleaned)
+] <- "MAPTKI"
+snrnaseq_geneids$genotype_status_cleaned[
+  grepl("^P301S", snrnaseq_geneids$genotype_status_cleaned)
+] <- "P301S"
+
+snrnaseq_geneids$genotype_status_cleaned <- factor(
+  snrnaseq_geneids$genotype_status_cleaned,
+  levels = c(
+    "MAPTKI", "P301S",
+    "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Homeostatic",
+    "NLGF_P301S_Activated", "NLGF_P301S_Homeostatic"
+  )
+)
+
+red_dim_plot(
+  snrnaseq_geneids, x = "umap1", y = "umap2",
+  color = "genotype_status_cleaned", type = "cat"
+)
+```
+
 # References
 
 This is the concluding section of the document, where we output the `sessionInfo`, and create a bibliography for works cited.
