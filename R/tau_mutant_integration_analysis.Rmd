@@ -113,30 +113,37 @@ snrnaseq$genotype <- factor(
   levels = c("MAPTKI", "P301S", "NLGF_MAPTKI", "NLGF_P301S")
 )
 
-snrnaseq_geneids <- suppressWarnings(GetAssayData(snrnaseq, assay = "RNA"))
-gene_anno <- data.frame(
-  external_gene_name = unlist(snrnaseq@misc$geneids),
-  ensembl_gene_id = rownames(
-    suppressWarnings(GetAssayData(snrnaseq, assay = "RNA"))
+rds <- file.path(cache_dir, "snrnaseq_geneids.rds")
+if (file.exists(rds)) {
+  snrnaseq_geneids <- readRDS(rds)
+} else {
+  snrnaseq_geneids <- suppressWarnings(GetAssayData(snrnaseq, assay = "RNA"))
+  gene_anno <- data.frame(
+    external_gene_name = unlist(snrnaseq@misc$geneids),
+    ensembl_gene_id = rownames(
+      suppressWarnings(GetAssayData(snrnaseq, assay = "RNA"))
+    )
   )
-)
-gene_anno <- gene_anno[
-  gene_anno$ensembl_gene_id %in% rownames(snrnaseq_geneids),
-]
-rownames(snrnaseq_geneids) <- gene_anno$external_gene_name
-rm(gene_anno)
-snrnaseq_geneids <- CreateSeuratObject(
-  counts = snrnaseq_geneids, assay = "RNA", meta.data = snrnaseq@meta.data
-)
+  gene_anno <- gene_anno[
+    gene_anno$ensembl_gene_id %in% rownames(snrnaseq_geneids),
+  ]
+  rownames(snrnaseq_geneids) <- gene_anno$external_gene_name
+  rm(gene_anno)
+  snrnaseq_geneids <- CreateSeuratObject(
+    counts = snrnaseq_geneids, assay = "RNA", meta.data = snrnaseq@meta.data
+  )
 
-snrnaseq_geneids <- SCTransform(snrnaseq_geneids, verbose = FALSE)
-snrnaseq_geneids <- RunPCA(snrnaseq_geneids, npcs = 30, verbose = FALSE)
+  snrnaseq_geneids <- SCTransform(snrnaseq_geneids, verbose = FALSE)
+  snrnaseq_geneids <- RunPCA(snrnaseq_geneids, npcs = 30, verbose = FALSE)
+  snrnaseq_geneids <- RunUMAP(snrnaseq_geneids, dims = 1:18, verbose = FALSE)
+  add_df <- data.frame(Embeddings(snrnaseq_geneids, reduction = "umap"))
+  snrnaseq_geneids$umap1 <- add_df[ , 1]
+  snrnaseq_geneids$umap2 <- add_df[ , 2]
+
+  saveRDS(snrnaseq_geneids, file = rds)
+}
+
 ElbowPlot(snrnaseq_geneids, ndims = 30)
-
-snrnaseq_geneids <- RunUMAP(snrnaseq_geneids, dims = 1:18, verbose = FALSE)
-add_df <- data.frame(Embeddings(snrnaseq_geneids, reduction = "umap"))
-snrnaseq_geneids$umap1 <- add_df[ , 1]
-snrnaseq_geneids$umap2 <- add_df[ , 2]
 red_dim_plot(
   snrnaseq_geneids, x = "umap1", y = "umap2", color = "genotype", type = "cat"
 )
@@ -149,6 +156,8 @@ geomx[["pca"]] <- pca
 add_df <- data.frame(Embeddings(geomx, reduction = "pca"))
 geomx$pca1 <- add_df[ , 1]
 geomx$pca5 <- add_df[ , 5]
+rm(add_df)
+
 red_dim_plot(geomx, x = "pca1", y = "pca5", color = "genotype", type = "cat")
 ```
 
