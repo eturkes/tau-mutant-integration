@@ -166,13 +166,13 @@ predictions <- MapQuery(
   refdata = "status", reference.dims = 1:2, query.dims = 1:18,
   verbose = FALSE
 )
-rm(snrnaseq_geneids)
-gc()
-
-snrnaseq$status <- factor(
+snrnaseq_geneids$status <- factor(
   predictions$predicted.id
 )
-red_dim_plot(snrnaseq, x = "umap1", y = "umap2", color = "status", type = "cat")
+
+red_dim_plot(
+  snrnaseq_geneids, x = "umap1", y = "umap2", color = "status", type = "cat"
+)
 ```
 
 # References
