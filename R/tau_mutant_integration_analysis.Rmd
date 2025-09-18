@@ -84,7 +84,7 @@ knitr::opts_chunk$set(fig.width = 7, fig.height = 5, dpi = 96)
 # ----------------
 ```
 
-# Load Data
+# Prep Data
 
 ```{r}
 snrnaseq <- readRDS(file.path(data_dir, "snrnaseq.rds"))
@@ -99,11 +99,7 @@ geomx$status <- factor(
     )
   )
 )
-```
 
-# Prep Data
-
-```{r}
 snrnaseq@active.ident <- snrnaseq$genotype
 snrnaseq <- subset(
   snrnaseq, idents = c("MAPTKI", "P301S", "NLGF_MAPTKI", "NLGF_P301S")
@@ -161,7 +157,7 @@ rm(add_df)
 red_dim_plot(geomx, x = "pca1", y = "pca5", color = "genotype", type = "cat")
 ```
 
-# Map Data
+# Layer 1 Mapping
 
 ```{r}
 anchors <- FindTransferAnchors(
@@ -182,11 +178,7 @@ snrnaseq_geneids$status <- factor(
 red_dim_plot(
   snrnaseq_geneids, x = "umap1", y = "umap2", color = "status", type = "cat"
 )
-```
 
-# Intersect Annotations
-
-```{r}
 snrnaseq_geneids$genotype_status <- factor(
   paste(
     snrnaseq_geneids$genotype, snrnaseq_geneids$status, sep = "_"
@@ -228,11 +220,7 @@ red_dim_plot(
   snrnaseq_geneids, x = "umap1", y = "umap2",
   color = "genotype_status_cleaned", type = "cat"
 )
-```
 
-# Layer 2 Prep
-
-```{r}
 rds <- file.path(cache_dir, "snrnaseq_geneids_l2.rds")
 if (file.exists(rds)) {
   snrnaseq_geneids_l2 <- readRDS(rds)
@@ -301,7 +289,7 @@ if (file.exists(rds)) {
 }
 ```
 
-# Map Data
+# Layer 2 Mapping
 
 ```{r}
 anchors <- FindTransferAnchors(
@@ -322,11 +310,7 @@ snrnaseq_geneids_l2$status <- factor(
 red_dim_plot(
   snrnaseq_geneids_l2, x = "umap1", y = "umap2", color = "status", type = "cat"
 )
-```
 
-# Layer 2 Intersect Annotations
-
-```{r}
 snrnaseq_geneids_l2$genotype_status <- factor(
   paste(
     snrnaseq_geneids_l2$genotype, snrnaseq_geneids_l2$status, sep = "_"
