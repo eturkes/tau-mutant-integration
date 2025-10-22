@@ -139,9 +139,23 @@ if (file.exists(rds)) {
   saveRDS(snrnaseq_geneids, file = rds)
 }
 
-ElbowPlot(snrnaseq_geneids, ndims = 30)
+rds <- file.path(cache_dir, "snrnaseq_reprocessed.rds")
+if (file.exists(rds)) {
+  snrnaseq <- readRDS(rds)
+} else {
+  snrnaseq <- SCTransform(snrnaseq, verbose = FALSE)
+  snrnaseq <- RunPCA(snrnaseq, npcs = 30, verbose = FALSE)
+  snrnaseq <- RunUMAP(snrnaseq, dims = 1:18, verbose = FALSE)
+  add_df <- data.frame(Embeddings(snrnaseq, reduction = "umap"))
+  snrnaseq$umap1 <- add_df[ , 1]
+  snrnaseq$umap2 <- add_df[ , 2]
+
+  saveRDS(snrnaseq, file = rds)
+}
+
+ElbowPlot(snrnaseq, ndims = 30)
 red_dim_plot(
-  snrnaseq_geneids, x = "umap1", y = "umap2", color = "genotype", type = "cat"
+  snrnaseq, x = "umap1", y = "umap2", color = "genotype", type = "cat"
 )
 
 pca <- geomx[["pca"]]
@@ -157,7 +171,7 @@ rm(add_df)
 red_dim_plot(geomx, x = "pca1", y = "pca5", color = "genotype", type = "cat")
 ```
 
-# Layer 1 Mapping
+# Integration
 
 ```{r}
 anchors <- FindTransferAnchors(
@@ -171,17 +185,13 @@ predictions <- MapQuery(
   refdata = "status", reference.dims = 1:2, query.dims = 1:18,
   verbose = FALSE
 )
-snrnaseq_geneids$status <- factor(
-  predictions$predicted.id
-)
+snrnaseq$status <- factor(predictions$predicted.id)
 
-red_dim_plot(
-  snrnaseq_geneids, x = "umap1", y = "umap2", color = "status", type = "cat"
-)
+red_dim_plot(snrnaseq, x = "umap1", y = "umap2", color = "status", type = "cat")
 
-snrnaseq_geneids$genotype_status <- factor(
+snrnaseq$genotype_status <- factor(
   paste(
-    snrnaseq_geneids$genotype, snrnaseq_geneids$status, sep = "_"
+    snrnaseq$genotype, snrnaseq$status, sep = "_"
   ),
   levels = c(
     "MAPTKI_Activated", "MAPTKI_Homeostatic",
@@ -190,25 +200,21 @@ snrnaseq_geneids$genotype_status <- factor(
     "NLGF_P301S_Activated", "NLGF_P301S_Homeostatic"
   )
 )
-table(snrnaseq_geneids$genotype_status)
+table(snrnaseq$genotype_status)
 
-red_dim_plot(
-  snrnaseq_geneids, x = "umap1", y = "umap2", color = "genotype_status"
-)
+red_dim_plot(snrnaseq, x = "umap1", y = "umap2", color = "genotype_status")
 
-snrnaseq_geneids$genotype_status_cleaned <- as.character(
-  snrnaseq_geneids$genotype_status
-)
+snrnaseq$genotype_status_cleaned <- as.character(snrnaseq$genotype_status)
 
-snrnaseq_geneids$genotype_status_cleaned[
-  grepl("^MAPTKI", snrnaseq_geneids$genotype_status_cleaned)
+snrnaseq$genotype_status_cleaned[
+  grepl("^MAPTKI", snrnaseq$genotype_status_cleaned)
 ] <- "MAPTKI"
-snrnaseq_geneids$genotype_status_cleaned[
-  grepl("^P301S", snrnaseq_geneids$genotype_status_cleaned)
+snrnaseq$genotype_status_cleaned[
+  grepl("^P301S", snrnaseq$genotype_status_cleaned)
 ] <- "P301S"
 
-snrnaseq_geneids$genotype_status_cleaned <- factor(
-  snrnaseq_geneids$genotype_status_cleaned,
+snrnaseq$genotype_status_cleaned <- factor(
+  snrnaseq$genotype_status_cleaned,
   levels = c(
     "MAPTKI", "P301S",
     "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Homeostatic",
@@ -217,115 +223,14 @@ snrnaseq_geneids$genotype_status_cleaned <- factor(
 )
 
 red_dim_plot(
-  snrnaseq_geneids, x = "umap1", y = "umap2",
+  snrnaseq, x = "umap1", y = "umap2",
   color = "genotype_status_cleaned", type = "cat"
 )
 
-rds <- file.path(cache_dir, "snrnaseq_geneids_l2.rds")
-if (file.exists(rds)) {
-  snrnaseq_geneids_l2 <- readRDS(rds)
-} else {
-  snrnaseq_geneids_l2 <- snrnaseq_geneids
-  snrnaseq_geneids_l2@active.ident <- snrnaseq_geneids_l2$genotype
-  snrnaseq_geneids_l2 <- subset(
-    snrnaseq_geneids_l2, idents = c("NLGF_MAPTKI", "NLGF_P301S")
-  )
-  snrnaseq_geneids_l2$genotype <- factor(snrnaseq_geneids_l2$genotype)
-
-  snrnaseq_geneids_l2 <- SCTransform(snrnaseq_geneids_l2, verbose = FALSE)
-  snrnaseq_geneids_l2 <- RunPCA(snrnaseq_geneids_l2, npcs = 30, verbose = FALSE)
-  snrnaseq_geneids_l2 <- RunUMAP(snrnaseq_geneids_l2, dims = 1:6, verbose = FALSE)
-
-  add_df <- data.frame(Embeddings(snrnaseq_geneids_l2, reduction = "umap"))
-  snrnaseq_geneids_l2$umap1 <- add_df[ , 1]
-  snrnaseq_geneids_l2$umap2 <- add_df[ , 2]
-
-  add_df <- data.frame(Embeddings(snrnaseq_geneids_l2, reduction = "pca"))
-  snrnaseq_geneids_l2$pca1 <- add_df[ , 1]
-  snrnaseq_geneids_l2$pca2 <- add_df[ , 2]
-
-  saveRDS(snrnaseq_geneids_l2, file = rds)
+rds <- file.path(cache_dir, "snrnaseq_integrated.rds")
+if (!file.exists(rds)) {
+  saveRDS(snrnaseq, file = rds)
 }
-
-ElbowPlot(snrnaseq_geneids_l2, ndims = 30)
-red_dim_plot(
-  snrnaseq_geneids_l2, x = "umap1", y = "umap2",
-  color = "genotype_status", type = "cat"
-)
-red_dim_plot(
-  snrnaseq_geneids_l2, x = "pca1", y = "pca2",
-  color = "genotype_status", type = "cat"
-)
-
-pca <- snrnaseq_geneids_l2[["pca"]]
-pca@feature.loadings[ , 2] <- pca@feature.loadings[ , 1]
-pca@cell.embeddings[ , 2] <- pca@cell.embeddings[ , 1]
-snrnaseq_geneids_l2[["pca"]] <- pca
-
-rds <- file.path(cache_dir, "geomx_l2.rds")
-if (file.exists(rds)) {
-  geomx_l2 <- readRDS(rds)
-} else {
-  geomx_l2 <- geomx
-  geomx_l2@active.ident <- geomx_l2$genotype
-  geomx_l2 <- subset(
-    geomx_l2, idents = c("NLGF_MAPTKI", "NLGF_P301S")
-  )
-  geomx_l2$genotype <- factor(geomx_l2$genotype)
-
-  geomx_l2 <- SCTransform(geomx_l2, verbose = FALSE)
-  geomx_l2 <- RunPCA(geomx_l2, npcs = 30, verbose = FALSE)
-  geomx_l2 <- RunUMAP(geomx_l2, dims = 2:4, verbose = FALSE)
-
-  add_df <- data.frame(Embeddings(geomx_l2, reduction = "umap"))
-  geomx_l2$umap1 <- add_df[ , 1]
-  geomx_l2$umap2 <- add_df[ , 2]
-
-  add_df <- data.frame(Embeddings(geomx_l2, reduction = "pca"))
-  geomx_l2$pca2 <- add_df[ , 2]
-  geomx_l2$pca3 <- add_df[ , 3]
-
-  saveRDS(geomx_l2, file = rds)
-}
-```
-
-# Layer 2 Mapping
-
-```{r}
-anchors <- FindTransferAnchors(
-  geomx_l2, snrnaseq_geneids_l2,
-  normalization.method = "SCT", recompute.residuals = FALSE,
-  reference.reduction = "pca", project.query = TRUE,
-  dims = 2:3, verbose = FALSE
-)
-predictions <- MapQuery(
-  anchors, snrnaseq_geneids_l2, geomx_l2,
-  refdata = "status", reference.dims = 2:3, query.dims = 1:2,
-  verbose = FALSE
-)
-snrnaseq_geneids_l2$status <- factor(
-  predictions$predicted.id
-)
-
-red_dim_plot(
-  snrnaseq_geneids_l2, x = "umap1", y = "umap2", color = "status", type = "cat"
-)
-
-snrnaseq_geneids_l2$genotype_status <- factor(
-  paste(
-    snrnaseq_geneids_l2$genotype, snrnaseq_geneids_l2$status, sep = "_"
-  ),
-  levels = c(
-    "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Homeostatic",
-    "NLGF_P301S_Activated", "NLGF_P301S_Homeostatic"
-  )
-)
-table(snrnaseq_geneids_l2$genotype_status)
-
-red_dim_plot(
-  snrnaseq_geneids_l2, x = "umap1", y = "umap2",
-  color = "genotype_status", type = "cat"
-)
 ```
 
 # References
