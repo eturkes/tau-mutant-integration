@@ -323,7 +323,7 @@ close(tc)
 results_gse <- read.delim(text = results)
 
 rownames(results_gse) <- results_gse$X
-results_gse <- results_gse[ , 2:39]
+results_gse <- results_gse[ , 2:40]
 results_gse$GeneSet <- rownames(results_gse)
 results_gse <- results_gse[order(results_gse$F.p.value), ]
 
@@ -396,7 +396,7 @@ close(tc)
 results_deg <- read.delim(text = results)
 
 rownames(results_deg) <- results_deg$X
-results_deg <- results_deg[ , 2:39]
+results_deg <- results_deg[ , 2:40]
 gene_anno_sub <- gene_anno[gene_anno$ensembl %in% rownames(results_deg), ]
 gene_anno_sub <- gene_anno_sub[
   match(rownames(results_deg), gene_anno_sub$ensembl),
