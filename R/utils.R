@@ -81,3 +81,55 @@ red_dim_plot <- function(data, x, y, color, type = NULL) {
   }
   gg
 }
+
+computeGeneSetsOverlapMax <- function(gSets, uniqGenes, min.sz=1, max.sz=Inf) {
+  ## gSetsMembershipMatrix should be a (genes x gene-sets) incidence matrix
+
+  gSetsMembershipMatrix <- incidence(gSets)
+  gSetsMembershipMatrix <- t(gSetsMembershipMatrix[, colnames(gSetsMembershipMatrix) %in% uniqGenes])
+
+  lenGsets <- colSums(gSetsMembershipMatrix)
+
+  szFilterMask <- lenGsets >= max(1, min.sz) & lenGsets <= max.sz
+  if (!any(szFilterMask))
+    stop("No gene set meets the minimum and maximum size filter\n")
+
+  gSetsMembershipMatrix <- gSetsMembershipMatrix[, szFilterMask]
+  lenGsets <- lenGsets[szFilterMask]
+
+  totalGsets <- ncol(gSetsMembershipMatrix)
+
+  M <- t(gSetsMembershipMatrix) %*% gSetsMembershipMatrix
+
+  M1 <- matrix(lenGsets, nrow=totalGsets, ncol=totalGsets,
+               dimnames=list(colnames(gSetsMembershipMatrix), colnames(gSetsMembershipMatrix)))
+  M2 <- t(M1)
+  M.max <- matrix(0, nrow=totalGsets, ncol=totalGsets)
+  M.max[M1 > M2] <- M1[M1 > M2]
+  M.max[M2 >= M1] <- M2[M2 >= M1]
+  overlapMatrix <- M / M.max
+
+  return (overlapMatrix)
+}
+
+genefunnel <- function(mat, gene_sets, BPPARAM = bpparam()) {
+
+  if (!inherits(mat, "sparseMatrix")) {
+    mat <- Matrix(mat, sparse = TRUE)
+  }
+
+  result <- bplapply(
+    seq_len(ncol(mat)),
+    function(i) {
+      calculateScores(mat[, i, drop = FALSE], rownames(mat), gene_sets)
+    },
+    BPPARAM = BPPARAM
+  )
+
+  scores <- do.call(cbind, result)
+  rownames(scores) <- names(gene_sets)
+  colnames(scores) <- colnames(mat)
+  # scores <- Matrix(scores, sparse = TRUE)
+
+  return(scores)
+}
