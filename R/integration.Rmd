@@ -90,9 +90,9 @@ geomx <- readRDS(file.path(data_dir, "geomx.rds"))
 
 geomx$status <- factor(
   ifelse(
-    geomx$genotype %in% c("MAPTKI", "P301S"), yes = "Non_Contacting",
+    geomx$genotype %in% c("MAPTKI", "P301S"), yes = "NC",
     no = ifelse(
-      geomx$genotype %in% c("NLGF_MAPTKI", "NLGF_P301S"), yes = "Contacting",
+      geomx$genotype %in% c("NLGF_MAPTKI", "NLGF_P301S"), yes = "C",
       no = "Other"
     )
   )
@@ -192,10 +192,10 @@ snrnaseq$genotype_status <- factor(
     snrnaseq$genotype, snrnaseq$status, sep = "_"
   ),
   levels = c(
-    "MAPTKI_Contacting", "MAPTKI_Non_Contacting",
-    "P301S_Contacting", "P301S_Non_Contacting",
-    "NLGF_MAPTKI_Contacting", "NLGF_MAPTKI_Non_Contacting",
-    "NLGF_P301S_Contacting", "NLGF_P301S_Non_Contacting"
+    "MAPTKI_C", "MAPTKI_NC",
+    "P301S_C", "P301S_NC",
+    "NLGF_MAPTKI_C", "NLGF_MAPTKI_NC",
+    "NLGF_P301S_C", "NLGF_P301S_NC"
   )
 )
 table(snrnaseq$genotype_status)
@@ -215,8 +215,8 @@ snrnaseq$genotype_status_cleaned <- factor(
   snrnaseq$genotype_status_cleaned,
   levels = c(
     "MAPTKI", "P301S",
-    "NLGF_MAPTKI_Contacting", "NLGF_MAPTKI_Non_Contacting",
-    "NLGF_P301S_Contacting", "NLGF_P301S_Non_Contacting"
+    "NLGF_MAPTKI_C", "NLGF_MAPTKI_NC",
+    "NLGF_P301S_C", "NLGF_P301S_NC"
   )
 )
 
