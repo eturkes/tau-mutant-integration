@@ -217,9 +217,9 @@ if (file.exists(rds)) {
       "MAPTKI",
       "P301S",
       "NLGF_MAPTKI_Non_Contacting",
-      "NLGF_MAPTKI_Activated",
+      "NLGF_MAPTKI_Contacting",
       "NLGF_P301S_Non_Contacting",
-      "NLGF_P301S_Activated"
+      "NLGF_P301S_Contacting"
     )
   )
   seurat$genotype_status_cleaned_batch <- factor(
@@ -287,27 +287,27 @@ cont_mat <- makeContrasts(
   NLGF_MAPTKI_Non_Contacting_MAPTKI =
     gse.genotype_status_cleanedNLGF_MAPTKI_Non_Contacting -
     gse.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_ACTIVATED_MAPTKI =
-    gse.genotype_status_cleanedNLGF_MAPTKI_Activated -
+  NLGF_MAPTKI_Contacting_MAPTKI =
+    gse.genotype_status_cleanedNLGF_MAPTKI_Contacting -
     gse.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_ACTIVATED_NLGF_MAPTKI_Non_Contacting =
-    gse.genotype_status_cleanedNLGF_MAPTKI_Activated -
+  NLGF_MAPTKI_Contacting_NLGF_MAPTKI_Non_Contacting =
+    gse.genotype_status_cleanedNLGF_MAPTKI_Contacting -
     gse.genotype_status_cleanedNLGF_MAPTKI_Non_Contacting,
   NLGF_P301S_Non_Contacting_P301S =
     gse.genotype_status_cleanedNLGF_P301S_Non_Contacting -
     gse.genotype_status_cleanedP301S,
-  NLGF_P301S_ACTIVATED_P301S =
-    gse.genotype_status_cleanedNLGF_P301S_Activated -
+  NLGF_P301S_Contacting_P301S =
+    gse.genotype_status_cleanedNLGF_P301S_Contacting -
     gse.genotype_status_cleanedP301S,
-  NLGF_P301S_ACTIVATED_NLGF_P301S_Non_Contacting =
-    gse.genotype_status_cleanedNLGF_P301S_Activated -
+  NLGF_P301S_Contacting_NLGF_P301S_Non_Contacting =
+    gse.genotype_status_cleanedNLGF_P301S_Contacting -
     gse.genotype_status_cleanedNLGF_P301S_Non_Contacting,
   NLGF_P301S_Non_Contacting_NLGF_MAPTKI_Non_Contacting =
     gse.genotype_status_cleanedNLGF_P301S_Non_Contacting -
     gse.genotype_status_cleanedNLGF_MAPTKI_Non_Contacting,
-  NLGF_P301S_ACTIVATED_NLGF_MAPTKI_ACTIVATED =
-    gse.genotype_status_cleanedNLGF_P301S_Activated -
-    gse.genotype_status_cleanedNLGF_MAPTKI_Activated,
+  NLGF_P301S_Contacting_NLGF_MAPTKI_Contacting =
+    gse.genotype_status_cleanedNLGF_P301S_Contacting -
+    gse.genotype_status_cleanedNLGF_MAPTKI_Contacting,
   levels = design
 )
 
@@ -360,27 +360,27 @@ cont_mat <- makeContrasts(
   NLGF_MAPTKI_Non_Contacting_MAPTKI =
     deg.genotype_status_cleanedNLGF_MAPTKI_Non_Contacting -
     deg.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_ACTIVATED_MAPTKI =
-    deg.genotype_status_cleanedNLGF_MAPTKI_Activated -
+  NLGF_MAPTKI_Contacting_MAPTKI =
+    deg.genotype_status_cleanedNLGF_MAPTKI_Contacting -
     deg.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_ACTIVATED_NLGF_MAPTKI_Non_Contacting =
-    deg.genotype_status_cleanedNLGF_MAPTKI_Activated -
+  NLGF_MAPTKI_Contacting_NLGF_MAPTKI_Non_Contacting =
+    deg.genotype_status_cleanedNLGF_MAPTKI_Contacting -
     deg.genotype_status_cleanedNLGF_MAPTKI_Non_Contacting,
   NLGF_P301S_Non_Contacting_P301S =
     deg.genotype_status_cleanedNLGF_P301S_Non_Contacting -
     deg.genotype_status_cleanedP301S,
-  NLGF_P301S_ACTIVATED_P301S =
-    deg.genotype_status_cleanedNLGF_P301S_Activated -
+  NLGF_P301S_Contacting_P301S =
+    deg.genotype_status_cleanedNLGF_P301S_Contacting -
     deg.genotype_status_cleanedP301S,
-  NLGF_P301S_ACTIVATED_NLGF_P301S_Non_Contacting =
-    deg.genotype_status_cleanedNLGF_P301S_Activated -
+  NLGF_P301S_Contacting_NLGF_P301S_Non_Contacting =
+    deg.genotype_status_cleanedNLGF_P301S_Contacting -
     deg.genotype_status_cleanedNLGF_P301S_Non_Contacting,
   NLGF_P301S_Non_Contacting_NLGF_MAPTKI_Non_Contacting =
     deg.genotype_status_cleanedNLGF_P301S_Non_Contacting -
     deg.genotype_status_cleanedNLGF_MAPTKI_Non_Contacting,
-  NLGF_P301S_ACTIVATED_NLGF_MAPTKI_ACTIVATED =
-    deg.genotype_status_cleanedNLGF_P301S_Activated -
-    deg.genotype_status_cleanedNLGF_MAPTKI_Activated,
+  NLGF_P301S_Contacting_NLGF_MAPTKI_Contacting =
+    deg.genotype_status_cleanedNLGF_P301S_Contacting -
+    deg.genotype_status_cleanedNLGF_MAPTKI_Contacting,
   levels = design
 )
 

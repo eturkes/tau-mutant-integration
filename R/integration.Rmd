@@ -92,7 +92,7 @@ geomx$status <- factor(
   ifelse(
     geomx$genotype %in% c("MAPTKI", "P301S"), yes = "Non_Contacting",
     no = ifelse(
-      geomx$genotype %in% c("NLGF_MAPTKI", "NLGF_P301S"), yes = "Activated",
+      geomx$genotype %in% c("NLGF_MAPTKI", "NLGF_P301S"), yes = "Contacting",
       no = "Other"
     )
   )
@@ -192,10 +192,10 @@ snrnaseq$genotype_status <- factor(
     snrnaseq$genotype, snrnaseq$status, sep = "_"
   ),
   levels = c(
-    "MAPTKI_Activated", "MAPTKI_Non_Contacting",
-    "P301S_Activated", "P301S_Non_Contacting",
-    "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Non_Contacting",
-    "NLGF_P301S_Activated", "NLGF_P301S_Non_Contacting"
+    "MAPTKI_Contacting", "MAPTKI_Non_Contacting",
+    "P301S_Contacting", "P301S_Non_Contacting",
+    "NLGF_MAPTKI_Contacting", "NLGF_MAPTKI_Non_Contacting",
+    "NLGF_P301S_Contacting", "NLGF_P301S_Non_Contacting"
   )
 )
 table(snrnaseq$genotype_status)
@@ -215,8 +215,8 @@ snrnaseq$genotype_status_cleaned <- factor(
   snrnaseq$genotype_status_cleaned,
   levels = c(
     "MAPTKI", "P301S",
-    "NLGF_MAPTKI_Activated", "NLGF_MAPTKI_Non_Contacting",
-    "NLGF_P301S_Activated", "NLGF_P301S_Non_Contacting"
+    "NLGF_MAPTKI_Contacting", "NLGF_MAPTKI_Non_Contacting",
+    "NLGF_P301S_Contacting", "NLGF_P301S_Non_Contacting"
   )
 )
 
