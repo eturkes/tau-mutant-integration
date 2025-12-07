@@ -6,7 +6,7 @@ date: '`r strftime(Sys.time(), format = "%B %d, %Y")`'
 link-citations: true
 output:
   html_document:
-    code_folding: show
+    code_folding: hide
     number_sections: true
     theme: lumen
     highlight: haddock
