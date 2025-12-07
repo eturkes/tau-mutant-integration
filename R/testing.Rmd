@@ -281,33 +281,25 @@ logcounts(gse, withDimnames = FALSE) <- cpm(
 design <- model.matrix(~ 0 + gse$genotype_status_cleaned + gse$batch)
 colnames(design) <- make.names(colnames(design))
 cont_mat <- makeContrasts(
-  P301S_MAPTKI =
+  P301S_vs_MAPTKI =
     gse.genotype_status_cleanedP301S -
     gse.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_NC_MAPTKI =
+  NLGF_MAPTKI_vs_NC_MAPTKI =
     gse.genotype_status_cleanedNLGF_MAPTKI_NC -
     gse.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_C_MAPTKI =
-    gse.genotype_status_cleanedNLGF_MAPTKI_C -
-    gse.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_C_NLGF_MAPTKI_NC =
+  NLGF_MAPTKI_C_vs_NLGF_MAPTKI_NC =
     gse.genotype_status_cleanedNLGF_MAPTKI_C -
     gse.genotype_status_cleanedNLGF_MAPTKI_NC,
-  NLGF_P301S_NC_P301S =
-    gse.genotype_status_cleanedNLGF_P301S_NC -
-    gse.genotype_status_cleanedP301S,
-  NLGF_P301S_C_P301S =
-    gse.genotype_status_cleanedNLGF_P301S_C -
-    gse.genotype_status_cleanedP301S,
-  NLGF_P301S_C_NLGF_P301S_NC =
-    gse.genotype_status_cleanedNLGF_P301S_C -
-    gse.genotype_status_cleanedNLGF_P301S_NC,
-  NLGF_P301S_NC_NLGF_MAPTKI_NC =
-    gse.genotype_status_cleanedNLGF_P301S_NC -
-    gse.genotype_status_cleanedNLGF_MAPTKI_NC,
-  NLGF_P301S_C_NLGF_MAPTKI_C =
-    gse.genotype_status_cleanedNLGF_P301S_C -
-    gse.genotype_status_cleanedNLGF_MAPTKI_C,
+  NLGF_P301S_C_vs_NLGF_MAPTKI_C =
+    (gse.genotype_status_cleanedNLGF_P301S_C -
+     gse.genotype_status_cleanedNLGF_P301S_NC) -
+    (gse.genotype_status_cleanedNLGF_MAPTKI_C -
+     gse.genotype_status_cleanedNLGF_MAPTKI_NC),
+  NLGF_P301S_NC_vs_NLGF_MAPTKI_NC =
+    (gse.genotype_status_cleanedNLGF_P301S_NC -
+     gse.genotype_status_cleanedP301S) -
+    (gse.genotype_status_cleanedNLGF_MAPTKI_NC -
+     gse.genotype_status_cleanedMAPTKI),
   levels = design
 )
 
@@ -323,7 +315,7 @@ close(tc)
 results_gse <- read.delim(text = results)
 
 rownames(results_gse) <- results_gse$X
-results_gse <- results_gse[ , 2:40]
+results_gse <- results_gse[ , 2:24]
 results_gse$GeneSet <- rownames(results_gse)
 results_gse <- results_gse[order(results_gse$F.p.value), ]
 
@@ -354,33 +346,25 @@ logcounts(deg, withDimnames = FALSE) <- cpm(
 design <- model.matrix(~ 0 + deg$genotype_status_cleaned + deg$batch)
 colnames(design) <- make.names(colnames(design))
 cont_mat <- makeContrasts(
-  P301S_MAPTKI =
+  P301S_vs_MAPTKI =
     deg.genotype_status_cleanedP301S -
     deg.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_NC_MAPTKI =
+  NLGF_MAPTKI_vs_NC_MAPTKI =
     deg.genotype_status_cleanedNLGF_MAPTKI_NC -
     deg.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_C_MAPTKI =
-    deg.genotype_status_cleanedNLGF_MAPTKI_C -
-    deg.genotype_status_cleanedMAPTKI,
-  NLGF_MAPTKI_C_NLGF_MAPTKI_NC =
+  NLGF_MAPTKI_C_vs_NLGF_MAPTKI_NC =
     deg.genotype_status_cleanedNLGF_MAPTKI_C -
     deg.genotype_status_cleanedNLGF_MAPTKI_NC,
-  NLGF_P301S_NC_P301S =
-    deg.genotype_status_cleanedNLGF_P301S_NC -
-    deg.genotype_status_cleanedP301S,
-  NLGF_P301S_C_P301S =
-    deg.genotype_status_cleanedNLGF_P301S_C -
-    deg.genotype_status_cleanedP301S,
-  NLGF_P301S_C_NLGF_P301S_NC =
-    deg.genotype_status_cleanedNLGF_P301S_C -
-    deg.genotype_status_cleanedNLGF_P301S_NC,
-  NLGF_P301S_NC_NLGF_MAPTKI_NC =
-    deg.genotype_status_cleanedNLGF_P301S_NC -
-    deg.genotype_status_cleanedNLGF_MAPTKI_NC,
-  NLGF_P301S_C_NLGF_MAPTKI_C =
-    deg.genotype_status_cleanedNLGF_P301S_C -
-    deg.genotype_status_cleanedNLGF_MAPTKI_C,
+  NLGF_P301S_C_vs_NLGF_MAPTKI_C =
+    (deg.genotype_status_cleanedNLGF_P301S_C -
+     deg.genotype_status_cleanedNLGF_P301S_NC) -
+    (deg.genotype_status_cleanedNLGF_MAPTKI_C -
+     deg.genotype_status_cleanedNLGF_MAPTKI_NC),
+  NLGF_P301S_NC_vs_NLGF_MAPTKI_NC =
+    (deg.genotype_status_cleanedNLGF_P301S_NC -
+     deg.genotype_status_cleanedP301S) -
+    (deg.genotype_status_cleanedNLGF_MAPTKI_NC -
+     deg.genotype_status_cleanedMAPTKI),
   levels = design
 )
 
@@ -396,7 +380,7 @@ close(tc)
 results_deg <- read.delim(text = results)
 
 rownames(results_deg) <- results_deg$X
-results_deg <- results_deg[ , 2:40]
+results_deg <- results_deg[ , 2:24]
 gene_anno_sub <- gene_anno[gene_anno$ensembl %in% rownames(results_deg), ]
 gene_anno_sub <- gene_anno_sub[
   match(rownames(results_deg), gene_anno_sub$ensembl),
