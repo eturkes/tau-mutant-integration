@@ -332,7 +332,7 @@ gene_sets_sub <- unique(unlist(geneIds(gene_sets_sub)))
 deg <- deg[rownames(deg) %in% gene_sets_sub, ]
 dge_orig <- DGEList(counts(deg))
 keep <- filterByExpr(
-  dge_orig, group = deg$tau,
+  dge_orig, group = deg$genotype_status_cleaned,
   min.count = 10, min.total.count = 15
 )
 dge_orig <- dge_orig[keep, ]
@@ -340,7 +340,7 @@ dge_orig <- calcNormFactors(dge_orig)
 dge <- DGEList(counts(deg))
 dge$samples$norm.factors <- dge_orig$samples$norm.factors
 keep <- filterByExpr(
-  dge, group = deg$tau,
+  dge, group = deg$genotype_status_cleaned,
   min.count = 4, min.total.count = 6
 )
 dge <- dge[keep, , keep.lib.sizes = FALSE]
